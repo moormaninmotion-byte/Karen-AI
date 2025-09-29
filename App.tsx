@@ -121,16 +121,16 @@ const App: React.FC = () => {
         <main>
           <QueryInput onSubmit={handleQuerySubmit} isLoading={isLoading} />
 
-          {error && (
-            <div className="mt-6 bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded-lg text-center">
-              <p><strong>Error:</strong> {error}</p>
+          {isLoading && (
+            <div className="flex items-center justify-center mt-4 text-gray-400">
+              <LoadingSpinner />
+              <p className="ml-3">Thinking... then complaining...</p>
             </div>
           )}
 
-          {isLoading && (
-            <div className="flex items-center justify-center mt-6 text-gray-400">
-              <LoadingSpinner />
-              <p className="ml-4 text-lg">Thinking... then complaining...</p>
+          {error && (
+            <div className="mt-6 bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded-lg text-center">
+              <p><strong>Error:</strong> {error}</p>
             </div>
           )}
 
