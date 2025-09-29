@@ -121,18 +121,21 @@ const App: React.FC = () => {
         <main>
           <QueryInput onSubmit={handleQuerySubmit} isLoading={isLoading} />
 
-          {isLoading && (
-            <div className="flex items-center justify-center mt-4 text-gray-400">
-              <LoadingSpinner />
-              <p className="ml-3">Thinking... then complaining...</p>
-            </div>
-          )}
+          {/* Wrapper for status messages */}
+          <div className="w-full max-w-2xl mx-auto">
+            {isLoading && (
+              <div className="flex items-center justify-center mt-4 text-gray-400">
+                <LoadingSpinner />
+                <p className="ml-3">Thinking... then complaining...</p>
+              </div>
+            )}
 
-          {error && (
-            <div className="mt-6 bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded-lg text-center">
-              <p><strong>Error:</strong> {error}</p>
-            </div>
-          )}
+            {error && (
+              <div className="mt-6 bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded-lg text-center">
+                <p><strong>Error:</strong> {error}</p>
+              </div>
+            )}
+          </div>
 
           {!isLoading && (normalResponse || karenResponse) && (
             <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
