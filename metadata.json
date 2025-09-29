@@ -1,0 +1,5 @@
+{
+  "name": "The Karenifier",
+  "description": "An AI agent-building showcase that chains two LLMs. Get a helpful answer to your query, then see it rephrased by 'Karen', a perpetually annoyed and unhelpful AI persona.",
+  "requestFramePermissions": []
+}
