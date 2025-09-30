@@ -1,24 +1,24 @@
 import React, { useState, useCallback, useEffect } from 'react';
-
-// --- Services ---
 import { streamNormalResponse, streamKarenResponse, ApiKeyError, GeminiError } from './services/geminiService';
-import { incrementPageVisit, incrementAppRun, getUsageStats, saveConversation, getHistory, clearHistory, Conversation } from './services/trackingService';
-
-// --- View Components ---
+import { 
+  incrementPageVisit, 
+  incrementAppRun, 
+  getUsageStats, 
+  getHistory, 
+  saveConversation, 
+  clearHistory as clearHistoryService,
+  Conversation 
+} from './services/trackingService';
 import ApiKeySetup from './components/ApiKeySetup';
 import MainAppView from './components/MainAppView';
 
-// Constant for the local storage key to store the Gemini API key.
 const API_KEY_STORAGE_KEY = 'gemini-api-key';
 
-/**
- * The main application component. It manages the application's state,
- * handles user interactions, and orchestrates the rendering of view components.
- */
 const App: React.FC = () => {
-  // --- State Management ---
+  // State management for the entire application
   const [apiKey, setApiKey] = useState<string | null>(null);
-  const [inputValue, setInputValue] = useState(''); // The text currently in the textarea
+  const [currentQuery, setCurrentQuery] = useState('');
+  const [inputValue, setInputValue] = useState('');
   const [normalResponse, setNormalResponse] = useState('');
   const [karenResponse, setKarenResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -26,12 +26,8 @@ const App: React.FC = () => {
   const [usageStats, setUsageStats] = useState({ visits: 0, runs: 0 });
   const [history, setHistory] = useState<Conversation[]>([]);
   const [showHistory, setShowHistory] = useState(false);
-  const [currentQuery, setCurrentQuery] = useState('');
 
-  /**
-   * Effect hook that runs once on initial component mount.
-   * It loads the API key from local storage and initializes usage tracking and history.
-   */
+  // Load initial data from localStorage on component mount
   useEffect(() => {
     const storedApiKey = localStorage.getItem(API_KEY_STORAGE_KEY);
     if (storedApiKey) {
@@ -42,18 +38,14 @@ const App: React.FC = () => {
     setHistory(getHistory());
   }, []);
 
-  /**
-   * Saves the provided API key to local storage and application state.
-   */
+  // Handler to save the API key
   const handleSetApiKey = (key: string) => {
     localStorage.setItem(API_KEY_STORAGE_KEY, key);
     setApiKey(key);
-    setError(''); // Clear any previous errors
+    setError('');
   };
 
-  /**
-   * Clears the API key from local storage and application state.
-   */
+  // Handler to clear the API key
   const handleClearApiKey = () => {
     localStorage.removeItem(API_KEY_STORAGE_KEY);
     setApiKey(null);
@@ -62,19 +54,15 @@ const App: React.FC = () => {
     setError('');
   };
 
-  /**
-   * Handles the submission of a user query using streaming.
-   */
+  // Main handler for submitting a query with response streaming
   const handleQuerySubmit = useCallback(async () => {
-    if (!inputValue.trim() || isLoading || !apiKey) {
-      if (!apiKey) {
-        setError('API Key is not set. Please provide a valid Gemini API key.');
-      }
+    if (!inputValue.trim() || isLoading) return;
+    if (!apiKey) {
+      setError('API Key is not set. Please provide a valid Gemini API key.');
       return;
     }
-
     if (!navigator.onLine) {
-      setError("You appear to be offline. Please check your network connection. You can still view your past conversation history.");
+      setError("Network connection is unavailable. You can still view your conversation history.");
       return;
     }
 
@@ -83,25 +71,26 @@ const App: React.FC = () => {
     setNormalResponse('');
     setKarenResponse('');
     setCurrentQuery(inputValue);
-    setShowHistory(false);
+    setShowHistory(false); // Close history panel on new query
 
     try {
-      let fullHelpfulResponse = '';
+      let fullNormalResponse = '';
       await streamNormalResponse(inputValue, apiKey, (chunk) => {
-        fullHelpfulResponse += chunk;
+        fullNormalResponse += chunk;
         setNormalResponse(prev => prev + chunk);
       });
 
       let fullKarenResponse = '';
-      await streamKarenResponse(fullHelpfulResponse, apiKey, (chunk) => {
+      await streamKarenResponse(fullNormalResponse, apiKey, (chunk) => {
         fullKarenResponse += chunk;
         setKarenResponse(prev => prev + chunk);
       });
-
+      
+      // Save full conversation to history after both streams complete
       const newConversation: Conversation = {
         id: Date.now(),
         query: inputValue,
-        normalResponse: fullHelpfulResponse,
+        normalResponse: fullNormalResponse,
         karenResponse: fullKarenResponse,
       };
       saveConversation(newConversation);
@@ -109,11 +98,11 @@ const App: React.FC = () => {
 
       incrementAppRun();
       setUsageStats(getUsageStats());
-
+      
     } catch (err) {
       if (err instanceof ApiKeyError) {
         setError(err.message);
-        handleClearApiKey();
+        handleClearApiKey(); // Clear invalid key
       } else if (err instanceof GeminiError) {
         setError(err.message);
       } else {
@@ -124,25 +113,22 @@ const App: React.FC = () => {
       setIsLoading(false);
     }
   }, [isLoading, apiKey, inputValue]);
-
-  const handleSelectExample = (query: string) => {
-    setInputValue(query);
-  };
-
+  
+  // History Panel Handlers
+  const handleToggleHistory = () => setShowHistory(prev => !prev);
   const handleSelectHistory = (conversation: Conversation) => {
     setCurrentQuery(conversation.query);
     setNormalResponse(conversation.normalResponse);
     setKarenResponse(conversation.karenResponse);
-    setShowHistory(false);
     setError('');
+    setShowHistory(false);
+  };
+  const handleClearHistory = () => {
+    clearHistoryService();
+    setHistory([]);
   };
 
-  const handleClearHistory = () => {
-    clearHistory();
-    setHistory([]);
-    setShowHistory(false);
-  };
-  
+  // Conditional rendering based on API key presence
   if (!apiKey) {
     return <ApiKeySetup onSetApiKey={handleSetApiKey} error={error} />;
   }
@@ -157,11 +143,10 @@ const App: React.FC = () => {
       error={error}
       normalResponse={normalResponse}
       karenResponse={karenResponse}
-      onSelectExample={handleSelectExample}
       usageStats={usageStats}
       history={history}
       showHistory={showHistory}
-      onToggleHistory={() => setShowHistory(prev => !prev)}
+      onToggleHistory={handleToggleHistory}
       onSelectHistory={handleSelectHistory}
       onClearHistory={handleClearHistory}
       currentQuery={currentQuery}

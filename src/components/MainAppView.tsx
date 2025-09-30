@@ -3,18 +3,16 @@ import Header from './Header';
 import QueryInput from './QueryInput';
 import ResponseDisplay from './ResponseDisplay';
 import EngagingLoader from './EngagingLoader';
-import ExampleQueries from './ExampleQueries';
 import UsageStats from './UsageStats';
-// FIX: Import new icons for history UI and Conversation type.
-import { RobotIcon, KarenIcon, KeyIcon, TrashIcon, SparklesIcon, LightbulbIcon, HistoryIcon, XIcon } from './Icons';
+import { RobotIcon, KarenIcon, KeyIcon, TrashIcon, SparklesIcon, LightbulbIcon, HistoryIcon } from './Icons';
 import { Conversation } from '../services/trackingService';
+import ConversationHistory from './ConversationHistory';
 
 
 /**
  * Props for the MainAppView component. It receives all necessary state and handlers
  * from the parent App component to render the UI and handle user interactions.
  */
-// FIX: Add history-related props to the interface to resolve type error.
 interface MainAppViewProps {
   inputValue: string;
   onInputChange: (value: string) => void;
@@ -24,7 +22,6 @@ interface MainAppViewProps {
   error: string;
   normalResponse: string;
   karenResponse: string;
-  onSelectExample: (query: string) => void;
   usageStats: { visits: number; runs: number };
   history: Conversation[];
   showHistory: boolean;
@@ -47,9 +44,7 @@ const MainAppView: React.FC<MainAppViewProps> = ({
   error,
   normalResponse,
   karenResponse,
-  onSelectExample,
   usageStats,
-  // FIX: Destructure new props.
   history,
   showHistory,
   onToggleHistory,
@@ -63,7 +58,6 @@ const MainAppView: React.FC<MainAppViewProps> = ({
         <Header />
         
         {/* API Key Status and History Button */}
-        {/* FIX: Add History button to toggle the history panel. */}
         <div className="flex justify-center my-6 space-x-4">
           <div className="bg-gray-800 p-2 rounded-lg flex items-center text-sm border border-gray-700">
             <KeyIcon />
@@ -96,22 +90,18 @@ const MainAppView: React.FC<MainAppViewProps> = ({
             isLoading={isLoading}
           />
 
-          <div className="w-full max-w-2xl mx-auto">
+          <div className="w-full max-w-2xl mx-auto mt-6">
             {isLoading && <EngagingLoader />}
-            
-            {/* Show example queries only when not loading */}
-            {!isLoading && <ExampleQueries onSelect={onSelectExample} />}
             
             {/* Display any errors that occur */}
             {error && (
-              <div className="mt-6 bg-red-900/50 border-red-700 text-red-300 px-4 py-3 rounded-lg text-center">
+              <div className="bg-red-900/50 border-red-700 text-red-300 px-4 py-3 rounded-lg text-center">
                 <p><strong>Error:</strong> {error}</p>
               </div>
             )}
           </div>
           
           {/* Response Section: Renders only when not loading and there's a response */}
-          {/* FIX: Display current query and wrap responses in a fragment. */}
           {!isLoading && (normalResponse || karenResponse) && (
             <>
               {currentQuery && (
@@ -168,49 +158,14 @@ const MainAppView: React.FC<MainAppViewProps> = ({
         
       </div>
 
-      {/* FIX: Add History Panel UI. */}
+      {/* History Panel UI */}
       {showHistory && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40" onClick={onToggleHistory}>
-          <div 
-            className="fixed top-0 right-0 h-full w-full max-w-sm bg-gray-900 shadow-2xl z-50 p-6 flex flex-col border-l border-gray-700"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-bold text-gray-200">Conversation History</h3>
-              <button onClick={onToggleHistory} className="text-gray-400 hover:text-white">
-                <XIcon />
-              </button>
-            </div>
-            {history.length > 0 ? (
-              <>
-                <div className="flex-grow overflow-y-auto pr-2 -mr-2">
-                  <ul className="space-y-3">
-                    {history.map((conv) => (
-                      <li key={conv.id}>
-                        <button 
-                          onClick={() => onSelectHistory(conv)} 
-                          className="w-full text-left p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors"
-                        >
-                          <p className="text-sm font-semibold text-gray-300 truncate">{conv.query}</p>
-                          <p className="text-xs text-gray-500 mt-1 truncate">{conv.normalResponse}</p>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <button
-                  onClick={onClearHistory}
-                  className="mt-6 w-full flex items-center justify-center p-3 rounded-lg bg-red-800 text-white font-semibold hover:bg-red-700"
-                >
-                  <TrashIcon />
-                  <span className="ml-2">Clear History</span>
-                </button>
-              </>
-            ) : (
-              <p className="text-gray-500 text-center mt-10">No history yet. Ask a question to get started!</p>
-            )}
-          </div>
-        </div>
+        <ConversationHistory 
+          history={history}
+          onSelectHistory={onSelectHistory}
+          onClearHistory={onClearHistory}
+          onClose={onToggleHistory}
+        />
       )}
     </div>
   );

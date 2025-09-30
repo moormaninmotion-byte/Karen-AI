@@ -1,9 +1,8 @@
 // Define a unique name for the cache.
 // Incrementing the version (e.g., v2, v3) is a common strategy to invalidate old caches during an update.
-const CACHE_NAME = 'karenifier-cache-v1';
+const CACHE_NAME = 'karenifier-cache-v3'; // Incremented version
 
 // A list of all the essential files the application needs to run offline.
-// Note the paths have been updated to reflect the new `src` directory structure.
 const URLS_TO_CACHE = [
   '/',
   '/index.html',
@@ -14,14 +13,12 @@ const URLS_TO_CACHE = [
   '/src/components/Header.tsx',
   '/src/components/QueryInput.tsx',
   '/src/components/ResponseDisplay.tsx',
-  '/src/components/LoadingSpinner.tsx',
   '/src/components/EngagingLoader.tsx',
   '/src/components/Icons.tsx',
-  '/src/components/ApiKeyInput.tsx',
-  '/src/components/ExampleQueries.tsx',
-  '/src/components/UsageStats.tsx',
   '/src/components/ApiKeySetup.tsx',
   '/src/components/MainAppView.tsx',
+  '/src/components/ConversationHistory.tsx',
+  '/src/components/UsageStats.tsx',
   'https://cdn.tailwindcss.com',
   'https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExMGJmaXh0a3B0YnVnZjNqMDljNHdoa3h3djIyMGw2MnFtbzNiZ2FscCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l4pT9M7xTuvBzwtGg/giphy.gif'
 ];
@@ -82,6 +79,7 @@ self.addEventListener('activate', event => {
         cacheNames.map(cacheName => {
           // If a cache name is not in our whitelist, it's an old cache that needs to be deleted.
           if (cacheWhitelist.indexOf(cacheName) === -1) {
+            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
