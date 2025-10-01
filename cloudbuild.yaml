@@ -23,13 +23,13 @@ steps:
       # Specify the exact image to deploy, using the tag from the build step.
       - '--image=gcr.io/$PROJECT_ID/karenifier-app:$COMMIT_SHA'
       # IMPORTANT: Change this to your preferred Google Cloud region.
-      - '--region=us-central1'
+      - '--region=us-east5'
       # Specify the execution environment. 'managed' is for the serverless platform.
       - '--platform=managed'
       # This flag makes the service publicly accessible over the internet.
       - '--allow-unauthenticated'
       # The port your application listens on inside the container. Nginx defaults to 80.
-      - '--port=80'
+      - '--port=8080'
 
 # A list of images created by this build that should be stored in GCR.
 images:
