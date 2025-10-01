@@ -1,40 +1,44 @@
+substitutions:
+  _SERVICE_NAME: ''
+  _REGION: 'us-east5'
+  _AR_REPO: ''
+  _PROJECT_ID: 'gen-lang-client-0473731579'
+  _COMMIT_SHA: ''
+   
 steps:
-  # Step 1: Build the container image using Docker.
-  # The '-t' flag tags the image with a name following the format: gcr.io/PROJECT_ID/IMAGE_NAME:TAG
-  # We use the commit SHA as the tag for unique versioning.
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/karenifier-app:$COMMIT_SHA', '.']
+    args: ['build', '-t', '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE_NAME}:${COMMIT_SHA}', '.']
 
-  # Step 2: Push the built container image to Google Container Registry (GCR).
-  # This makes the image available for deployment services like Cloud Run.
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/karenifier-app:$COMMIT_SHA']
+    args: ['push', '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE_NAME}:${COMMIT_SHA}']
 
-  # Step 3: Deploy the new container image to Google Cloud Run.
-  # This step uses the gcloud CLI to update the service.
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
-      # The 'run deploy' command creates a new revision of a service.
       - 'run'
       - 'deploy'
-      # The name of the Cloud Run service. You can change this.
-      - 'karenifier'
-      # Specify the exact image to deploy, using the tag from the build step.
-      - '--image=gcr.io/$PROJECT_ID/karenifier-app:$COMMIT_SHA'
-      # IMPORTANT: Change this to your preferred Google Cloud region.
-      - '--region=us-east5'
-      # Specify the execution environment. 'managed' is for the serverless platform.
+      - '${_SERVICE_NAME}'
+      - '--image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE_NAME}:${COMMIT_SHA}'
+      - '--region=${_REGION}'
       - '--platform=managed'
-      # This flag makes the service publicly accessible over the internet.
       - '--allow-unauthenticated'
-      # The port your application listens on inside the container. Nginx defaults to 80.
       - '--port=8080'
+      - '--quiet'
 
-# A list of images created by this build that should be stored in GCR.
 images:
-  - 'gcr.io/$PROJECT_ID/karenifier-app:$COMMIT_SHA'
+  - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE_NAME}:${COMMIT_SHA}'
 
-# Configuration for build logging.
 options:
   logging: CLOUD_LOGGING_ONLY
+
+timeout: '300s'  
+# 20 minutes
+# Adjust the timeout as needed based on your build and deployment time. 
+
+
+# To trigger this build, you can use the following gcloud command:
+# gcloud builds submit --config cloudbuild.yaml
+# --ons=_SERVICE_NAME="your-service-name",
+# --_REGION="your-region",_AR_REPO="your-artifact-repo",
+#-- _PROJECT_ID="your-project-id",_COMMIT_SHA="$(git rev-parse --short HEAD)" .
+
