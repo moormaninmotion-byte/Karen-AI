@@ -1,4 +1,4 @@
-// Define a unique name for the cache.
+*/*// Define a unique name for the cache.
 // Incrementing the version (e.g., v2, v3) is a common strategy to invalidate old caches during an update.
 const CACHE_NAME = 'karenifier-cache-v3'; // Incremented version
 
